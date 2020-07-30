@@ -3,11 +3,15 @@ package cn.how2j.diytomcat;
 import cn.how2j.diytomcat.http.Request;
 import cn.how2j.diytomcat.http.Response;
 import cn.how2j.diytomcat.util.Constant;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.NetUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.ZipUtil;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,9 +36,26 @@ public class Bootstrap {
                 System.out.println("uri:" + request.getUri());
 
                 Response response = new Response();
-                String html = "Hello DIY Tomcat from how2j.cn";
-                response.getWriter().println(html);
 
+                String uri = request.getUri();
+                if(null==uri)
+                    continue;
+                System.out.println(uri);
+                if("/".equals(uri)){
+                    String html = "Hello DIY Tomcat from how2j.cn";
+                    response.getWriter().println(html);
+                }
+                else{
+                    String fileName = StrUtil.removePrefix(uri, "/");
+                    File file = FileUtil.file(Constant.rootFolder,fileName);
+                    if(file.exists()){
+                        String fileContent = FileUtil.readUtf8String(file);
+                        response.getWriter().println(fileContent);
+                    }
+                    else{
+                        response.getWriter().println("File Not Found");
+                    }
+                }
                 handle200(s, response);
             }
         } catch (IOException e) {
